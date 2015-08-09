@@ -64,7 +64,32 @@ define
 %    	{Browse {ZipWith BinOp [1 2 3 4] [2 3 4 5 6 ]}}
     end
 
-    local FoldR in
-    	
+    local FoldR F in
+        fun {F X}
+            2 * X
+        end
+    	fun {FoldR Listify Xs Identity}
+            case Xs
+            of nil then Identity
+            [] H|T then {Listify H {FoldR Listify T Identity}}
+            end
+        end
+%       to find {Map F Xs}
+        {Browse {FoldR fun{$ X Y} {F X} | Y end [1 2 3 4] nil}}        
+    end
+
+    local FoldL Subtract in
+        fun { Subtract X Y}
+            X - Y
+        end
+        
+        fun {FoldL Function X Y}
+           case X
+           of nil then Y
+           [] H|T then {FoldL Function T {Function Y H} }
+           end 
+        end
+
+%        {Browse {FoldL Subtract [1 2 3] 0}}
     end
 end
