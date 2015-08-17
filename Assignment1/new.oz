@@ -68,8 +68,14 @@ define
         fun {F X}
             2 * X
         end
+    	fun {FoldR Listify Xs Identity}
+            case Xs
+            of nil then Identity
+            [] H|T then {Listify H {FoldR Listify T Identity}}
+            end
+        end
 %       to find {Map F Xs}
-%        {Browse {FoldR [1 2 3 4] fun{$ X Y} {F X} | Y end nil  }}        
+        {Browse {FoldR fun{$ X Y} {F X} | Y end [1 2 3 4] nil}}        
     end
 
     local FoldL Subtract in
@@ -87,57 +93,21 @@ define
 %        {Browse {FoldL Subtract [1 2 3] 0}}
     end
 
+    local Sine LazySine H in
 
-%Question 3 Taylor Expansion
-    local Sine LazySine H SineList EvaluateTaylor TaylorTermSum TaylorEpsilon TaylorEpsilonList in
-
-       %Question 3.1
         fun {Sine Xi}
-            {LazySine Xi 1.0 Xi}
+            {LazySine Xi Xi 1.0 Xi}
         end
 
-        fun lazy{LazySine Value N X}
-            local Curprev = ((Value*X*X*~1.0)/((2.0*N+1.0)*2.0*N))  in
-                Value|{LazySine Curprev N+1.0 X}
+        fun lazy{LazySine Value Prev N X}
+            local Curprev = ((Prev*X*X*~1.0)/((2.0*N+1.0)*2.0*N))  in
+                Value|{LazySine Value+Curprev Curprev N+1.0 X}
             end
         end
 
-%        {Browse {Sine 0.5}.2.1}
-
-%Question 3.2.1
-        fun {TaylorTermSum List N Val}
-            if N == 0 then Val
-            else
-                case List
-                of nil then 0.0
-                [] Q|T then {TaylorTermSum T N-1 (Val+Q)}
-                end
-            end 
-        end
-
-        fun {EvaluateTaylor X N}
-            SineList = {Sine X}
-            {TaylorTermSum SineList N 0.0}
-        end
-%        {Browse {EvaluateTaylor 0.5 8}}
-
-%Question 3.2.2
-        fun {TaylorEpsilonList List Epsilon Prev}
-            case List
-            of nil then nil
-            [] H|T then
-                if{ And ((Prev + H )< Epsilon) ((Prev + H) > ~1.0*Epsilon) } then
-                    H | nil
-                else
-                    H | {TaylorEpsilonList T Epsilon H}
-                end
-            end
-        end
-
-    	fun {TaylorEpsilon X Epsilon}
-    	   SineList = {Sine X}
-    	   {TaylorEpsilonList SineList Epsilon 0.0}
-    	end
-%        {Browse {TaylorEpsilon 0.5 0.00001}}
+        H = {Sine 0.5}
+        {Browse H.2.2.2.2.1}
     end
+
 end
+ %           Value|{Sine (Value+ (Prev*X*X*~1)/((2*N+1)*2*(N+1))) (Prev*X*X*~1)/((2*N+1)*2*(N+1)) N+1 X}
