@@ -1,9 +1,11 @@
 declare
 
 SemStack = {NewCell nil}
-Program = [[nop][nop][nop]]
-Env = {Dictionary.new}
-SemStack := {Append [semStmt(Program Env)] @SemStack}
+Program = [[nop][nop][localvar ident(x)]]
+NilEnv = {Dictionary.new}
+SemStack := {Append [semStmt(Program NilEnv)] @SemStack}
+SAS = {Dictionary.new}
+SASKey = {NewCell 0}
 
 fun {Interpretor}
    local Stmt Env in
@@ -40,6 +42,7 @@ fun {Interpretor}
 	 % ======================================
 	 
       [] S1|S2 then
+	 {Browse S1#S2}
 	 % ======================================
 	 % Push S2 on stack
 	 % ======================================
@@ -58,6 +61,30 @@ fun {Interpretor}
 	 % Call the interpretor again
 	 % ======================================
 	 {Interpretor}
+
+      [] [localvar ident(X) S] then
+	 {Browse X}
+	 % ======================================
+	 % Create new variable X in the store
+	 % ======================================
+	 {Dictionary.put SAS @SASKey nil}
+
+	 % ======================================
+	 % Map X in environment to SASKey
+	 % ======================================
+	 {Dictionary.put Env X @SASKey}
+	 SASKey := @SASKey + 1
+
+	 % ======================================
+	 % Push S with new environment
+	 % ======================================
+	 SemStack := {Append [semStmt(S Env)] @SemStack}
+
+	 % ======================================
+	 % Continue with interpretor
+	 % ======================================
+	 {Interpretor}
+	 
       end
    end
 end
