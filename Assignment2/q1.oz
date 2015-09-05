@@ -1,7 +1,10 @@
 declare
 
 SemStack = {NewCell nil}
-Program = [[nop][nop][localvar ident(x)]]
+Program = [localvar ident(x)
+	   [localvar ident(y)
+	    [localvar ident(x)
+	     [nop]]]]
 NilEnv = {Dictionary.new}
 SemStack := {Append [semStmt(Program NilEnv)] @SemStack}
 SAS = {Dictionary.new}
@@ -41,8 +44,7 @@ fun {Interpretor}
 	 % If stack is of the form <S1> <S2> then
 	 % ======================================
 	 
-      [] S1|S2 then
-	 {Browse S1#S2}
+      [] (S1|S1_2)|S2 then
 	 % ======================================
 	 % Push S2 on stack
 	 % ======================================
@@ -55,7 +57,7 @@ fun {Interpretor}
 	 % ======================================
 	 % Push S1 on stack
 	 % ======================================
-	 SemStack := {Append [semStmt(S1 Env)] @SemStack}
+	 SemStack := {Append [semStmt((S1|S1_2) Env)] @SemStack}
 
 	 % ======================================
 	 % Call the interpretor again
@@ -84,8 +86,10 @@ fun {Interpretor}
 	 % Continue with interpretor
 	 % ======================================
 	 {Interpretor}
-	 
       end
    end
 end
 {Browse {Interpretor}}
+
+
+   
