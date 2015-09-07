@@ -1,5 +1,6 @@
 declare
 SAS = {Dictionary.new}
+SASKey = {NewCell 0}
 
 %Retrieve a value from the single assignment store. This will raise an exception if the key is missing from the SAS. For unbound keys, this will return equivalence(Key) -- this is guaranteed to be the same for two keys in the same equivalence set.
 fun {RetrieveFromSAS Key}
@@ -33,6 +34,13 @@ fun {BindValueToKeyInSAS Key Val}
       else raise alreadyAssigned(Key Val Keyvalue) end
       end
    end
+end
+
+%Add a key to the single assignment store. This will return the key that you can associate with your identifier and later assign a value to.
+fun {AddKeyToSAS}
+   SASKey := @SASKey + 1
+   {Dictionary.put SAS @SASKey unbound}
+   @SASKey
 end
 
       
