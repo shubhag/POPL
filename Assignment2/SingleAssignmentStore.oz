@@ -17,7 +17,11 @@ end
 proc {BindRefToKeyInSAS Key RefKey}
    local Keyvalue = {Dictionary.get SAS Key} in
       case Keyvalue
-      of unbound then {Dictionary.put SAS Key equivalence(RefKey)}
+      of unbound then
+	 if Key \= RefKey
+	 then  {Dictionary.put SAS Key equivalence(RefKey)}
+	 else skip
+	 end
       [] equivalence(T) then {BindRefToKeyInSAS T RefKey}
       else raise error() end
       end

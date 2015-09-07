@@ -2,10 +2,12 @@
 declare
 
 SemStack = {NewCell nil}
-Program = [localvar ident(z)
-	   [localvar ident(y)
-	    [localvar ident(x)
-	     [[bind ident(x) ident(y)] [bind ident(x) ident(z)][nop]]]]]
+Program =  [localvar ident(foo)
+  [localvar ident(bar)
+   [[bind ident(foo) [record literal(person) [literal(name) ident(bar)]]]
+    [bind ident(bar) [record literal(person) [literal(name) ident(foo)]]]
+    [bind ident(foo) ident(bar)]]]]
+
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
 
@@ -30,7 +32,6 @@ fun {Interpretor}
       % ======================================
       % Check the popped statement
       % ======================================
-      
       case Stmt of nil then done
 
 	 % ======================================
@@ -68,6 +69,11 @@ fun {Interpretor}
       [] [bind Expression1 Expression2] then
 
 	 {Unify Expression1 Expression2 Env}
+	 %case Expression2
+	 %of ident(Y) then {Unify Expression1 Expression2 Env}
+	 %[] literal(Num) then {Unify Expression1 Num Env}
+	 %else skip
+	 %end
 	 {Interpretor}
 	 % ======================================
 	 % If stack is of the form <S1> <S2> then
@@ -92,7 +98,6 @@ fun {Interpretor}
 	 % Call the interpretor again
 	 % ======================================
 	 {Interpretor}
-
       end
    end
 end
