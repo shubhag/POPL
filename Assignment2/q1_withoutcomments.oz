@@ -2,18 +2,16 @@
 declare
 
 SemStack = {NewCell nil}
-Program = [localvar ident(x)
+Program = [localvar ident(z)
 	   [localvar ident(y)
 	    [localvar ident(x)
-	     [nop]]]]
+	     [[bind ident(x) ident(y)] [bind ident(x) ident(z)][nop]]]]]
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
-SAS = {Dictionary.new}
-SASKey = {NewCell 0}
 
 fun {Interpretor}
-   {Browse @SemStack}
-   % {Browse {Dictionary.entries SAS}}
+   %{Browse @SemStack}
+   {Browse {Dictionary.entries SAS}}
    
    local Stmt Env in
       % =======================================
@@ -53,21 +51,24 @@ fun {Interpretor}
 	 % ======================================
 	 % Create new variable X in the store
 	 % ======================================
-	 {Dictionary.put SAS @SASKey unbound}
 	 
 	 % ======================================
 	 % Push S with new environment and
 	 % increment SASKey
 	 % ======================================
-	 SemStack := {Append [semStmt(S {Adjoin Env environment(X:@SASKey)})] @SemStack}
-	 SASKey := @SASKey + 1 
-
+	 SemStack := {Append [semStmt(S {Adjoin Env environment(X:{AddKeyToSAS})})] @SemStack}
 	 % ======================================
 	 % Continue with interpretor
 	 % ======================================
 	 {Interpretor}
 
-	 
+	 %=======================================
+	 % If top of the stack is bind expression
+	 %=======================================
+      [] [bind Expression1 Expression2] then
+
+	 {Unify Expression1 Expression2 Env}
+	 {Interpretor}
 	 % ======================================
 	 % If stack is of the form <S1> <S2> then
 	 % ======================================
