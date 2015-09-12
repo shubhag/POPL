@@ -1,19 +1,23 @@
 \insert 'Unify.oz'
-declare
 
+declare
 SemStack = {NewCell nil}
 Program =  [localvar ident(foo)
-  [localvar ident(bar)
-   [[bind ident(foo) [record literal(person) [literal(name) ident(bar)]]]
-    [bind ident(bar) [record literal(person) [literal(name) ident(foo)]]]
-    [bind ident(foo) ident(bar)]]]]
+	    [localvar ident(bar)
+	     [[bind ident(foo) [record literal(person) [literal(name) ident(bar)]]]
+	      [bind ident(bar) [record literal(person) [literal(name) ident(foo)]]]
+	      [bind ident(foo) ident(bar)]]]]
 
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
 
 fun {Interpretor}
-   %{Browse @SemStack}
-   {Browse {Dictionary.entries SAS}}
+   % ==========================================
+   % Print the execution state
+   % Execution State = <semantic stack>,<SAS>
+   % ==========================================
+   
+   {Browse [@SemStack {Dictionary.entries SAS}]}
    
    local Stmt Env in
       % =======================================
@@ -34,7 +38,7 @@ fun {Interpretor}
       % ======================================
       case Stmt of nil then done
 
-	 % ======================================
+         % ======================================
 	 % If top is [nop] then do nothing and
 	 % call the Interpretor again
 	 % ======================================
@@ -48,33 +52,34 @@ fun {Interpretor}
 	 % ======================================
 
       [] [localvar ident(X) S] then
-	 % {Browse X}
 	 % ======================================
 	 % Create new variable X in the store
+	 % Push S with new environment and
+	 % Increment SASKey
 	 % ======================================
 	 
-	 % ======================================
-	 % Push S with new environment and
-	 % increment SASKey
-	 % ======================================
 	 SemStack := {Append [semStmt(S {Adjoin Env environment(X:{AddKeyToSAS})})] @SemStack}
+	 
 	 % ======================================
 	 % Continue with interpretor
 	 % ======================================
+	 
 	 {Interpretor}
 
-	 %=======================================
+	 % ======================================
 	 % If top of the stack is bind expression
-	 %=======================================
+	 % ======================================
+	 
       [] [bind Expression1 Expression2] then
 
+	 % ======================================
+	 % Unify given expression, trusting
+	 % Unify.oz
+	 % ======================================
+	 
 	 {Unify Expression1 Expression2 Env}
-	 %case Expression2
-	 %of ident(Y) then {Unify Expression1 Expression2 Env}
-	 %[] literal(Num) then {Unify Expression1 Num Env}
-	 %else skip
-	 %end
 	 {Interpretor}
+	 
 	 % ======================================
 	 % If stack is of the form <S1> <S2> then
 	 % ======================================
@@ -101,4 +106,6 @@ fun {Interpretor}
       end
    end
 end
+{Browse 'Starting Interpretor'}
 {Browse {Interpretor}}
+{Browse 'Program succesfully terminated'}
