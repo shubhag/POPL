@@ -1,14 +1,14 @@
+\insert 'SingleAssignmentStore.oz'
+% \insert 'Unify.oz'
 declare
-
 SemStack = {NewCell nil}
 Program = [localvar ident(x)
 	   [localvar ident(y)
-	    [localvar ident(x)
-	     [nop]]]]
+	    [bind ident(x) ident(y)]]]
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
-SAS = {Dictionary.new}
-SASKey = {NewCell 0}
+% SAS = {Dictionary.new}
+% SASKey = {NewCell 0}
 
 fun {Interpretor}
    {Browse @SemStack}
@@ -34,18 +34,18 @@ fun {Interpretor}
       
       case Stmt of nil then done
 
-	 % ======================================
-	 % If top is [nop] then do nothing and
-	 % call the Interpretor again
-	 % ======================================
+      % ======================================
+      % If top is [nop] then do nothing and
+      % call the Interpretor again
+      % ======================================
 	 
       [] nop|nil then
 	 % {Browse nop}
 	 {Interpretor}
 
-	 % ======================================
-	 % If top of stack is variable scope introduction
-	 % ======================================
+      % ======================================
+      % If top of stack is variable scope introduction
+      % ======================================
 
       [] [localvar ident(X) S] then
 	 % {Browse X}
@@ -66,11 +66,22 @@ fun {Interpretor}
 	 % ======================================
 	 {Interpretor}
 
+      % ======================================
+      % bind X = Y
+      % ======================================
+
+      [] [bind ident(X) ident(Y)] then
+	 {Browse X#Y}
 	 
 	 % ======================================
-	 % If stack is of the form <S1> <S2> then
+	 % Continue with interpretor
 	 % ======================================
+	 {Interpretor}
 	 
+      % ======================================
+      % If stack is of the form <S1> <S2> then
+      % ======================================
+
       [] S1|S2 then
 	 % ======================================
 	 % Push S2 on stack
