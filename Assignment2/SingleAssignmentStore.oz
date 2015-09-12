@@ -6,7 +6,7 @@ SASKey = {NewCell 0}
 fun {RetrieveFromSAS Key}
    local Keyvalue = {Dictionary.get SAS Key} in
       case Keyvalue
-      of unbound then equivalence(Keyvalue)
+      of unbound then equivalence(Key)
       [] equivalence(Y) then {RetrieveFromSAS Y}
       else Keyvalue
       end
@@ -14,19 +14,22 @@ fun {RetrieveFromSAS Key}
 end
 
 %If the key is unbound, then bind a reference to another key to a key in the SAS.
-fun {BindRefToKeyInSAS Key RefKey}
+proc {BindRefToKeyInSAS Key RefKey}
    local Keyvalue = {Dictionary.get SAS Key} in
       case Keyvalue
-      of unbound then {Dictionary.put SAS Key equivalence(RefKey)}
+      of unbound then
+	 if Key \= RefKey
+	 then  {Dictionary.put SAS Key equivalence(RefKey)}
+	 else skip
+	 end
       [] equivalence(T) then {BindRefToKeyInSAS T RefKey}
       else raise error() end
-	 
       end
    end
 end
 
 %If Key is unbound (value is part of an equivalence set) bind Val to a key in the SAS. Should raise an exception alreadyAssigned(Key Val CurrentValue) if the key is bound.
-fun {BindValueToKeyInSAS Key Val}
+proc {BindValueToKeyInSAS Key Val}
    local Keyvalue = {Dictionary.get SAS Key} in
       case Keyvalue
       of unbound then {Dictionary.put SAS Key Val }

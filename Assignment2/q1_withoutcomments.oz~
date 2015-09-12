@@ -1,16 +1,17 @@
 \insert 'Unify.oz'
+\insert 'SingleAssignmentStore.oz'
 declare
+
 SemStack = {NewCell nil}
 Program = [localvar ident(x)
 	   [localvar ident(y)
-	    [bind ident(x) ident(y)]]]
+	    [localvar ident(x)
+	     [bind ident(x) ident(y)]]]]
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
-% SAS = {Dictionary.new}
-% SASKey = {NewCell 0}
 
 fun {Interpretor}
-   {Browse @SemStack}
+   %{Browse @SemStack}
    % {Browse {Dictionary.entries SAS}}
    
    local Stmt Env in
@@ -33,54 +34,46 @@ fun {Interpretor}
       
       case Stmt of nil then done
 
-      % ======================================
-      % If top is [nop] then do nothing and
-      % call the Interpretor again
-      % ======================================
+	 % ======================================
+	 % If top is [nop] then do nothing and
+	 % call the Interpretor again
+	 % ======================================
 	 
       [] nop|nil then
 	 % {Browse nop}
 	 {Interpretor}
 
-      % ======================================
-      % If top of stack is variable scope introduction
-      % ======================================
+	 % ======================================
+	 % If top of stack is variable scope introduction
+	 % ======================================
 
       [] [localvar ident(X) S] then
 	 % {Browse X}
 	 % ======================================
 	 % Create new variable X in the store
 	 % ======================================
-	 {Dictionary.put SAS @SASKey unbound}
 	 
 	 % ======================================
 	 % Push S with new environment and
 	 % increment SASKey
 	 % ======================================
-	 SemStack := {Append [semStmt(S {Adjoin Env environment(X:@SASKey)})] @SemStack}
-	 SASKey := @SASKey + 1 
-
+	 SemStack := {Append [semStmt(S {Adjoin Env environment(X:{AddKeyToSAS})})] @SemStack}
 	 % ======================================
 	 % Continue with interpretor
 	 % ======================================
 	 {Interpretor}
 
-      % ======================================
-      % bind X = Y
-      % ======================================
+	 %=======================================
+	 % If top of the stack is bind expression
+	 %=======================================
+      [] [bind Expression1 Expression2] then
 
-      [] [bind ident(X) ident(Y)] then
-	 {Browse X#Y}
-	 
-	 % ======================================
-	 % Continue with interpretor
-	 % ======================================
+	 {Unify Expression1 Expression2 Env}
 	 {Interpretor}
+	 % ======================================
+	 % If stack is of the form <S1> <S2> then
+	 % ======================================
 	 
-      % ======================================
-      % If stack is of the form <S1> <S2> then
-      % ======================================
-
       [] S1|S2 then
 	 % ======================================
 	 % Push S2 on stack
