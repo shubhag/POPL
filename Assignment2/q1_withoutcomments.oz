@@ -33,18 +33,23 @@ fun {SortRecord Record}
 end
 
 fun {CreatePEnv Env  FList PFList}
-   {Browse 'Entered CreatePEnv'}
-   {Browse FList}
-   {Browse PFList}
+   %{Browse 'Entered CreatePEnv'}
+   %{Browse FList}
+   %{Browse PFList}
    case FList of nil then
-      case PFList of nil then {Browse 'Maggu Clear'} Env end
+      case PFList of nil then Env end
    [] HFList|TFList then case PFList of HPFList|TPFList then
 			    if (HFList.1 == HPFList.1) then
 			       local EnvTemp in
-				  {Browse HPFList.2.1#Env}
+				  %{Browse HPFList.2.1#Env}
 				  case HPFList.2.1 of [ident(X)] then
-				     EnvTemp = {Adjoin Env environment(X:{AddKeyToSAS})} 
-				  %{Unify HFList.2.1 PFList.2.1 EnvTemp} 
+				     EnvTemp = {Adjoin Env environment(X:{AddKeyToSAS})}
+				     %{Browse EnvTemp}
+				  else
+				     skip
+				  end
+				  %{Browse 'Unifying'#HFList.2.1.1#HPFList.2.1.1}
+				  {Unify HFList.2.1.1 HPFList.2.1.1 EnvTemp} 
 				  {CreatePEnv EnvTemp TFList TPFList}
 			       end
 			    else
@@ -75,7 +80,7 @@ fun {Interpretor}
 	 Env = @SemStack.1.2
 	 SemStack := @SemStack.2
       end
-      % {Browse [Stmt  Env {Dictionary.entries SAS}]}
+      {Browse [Stmt  Env {Dictionary.entries SAS}]}
       % ======================================
       % Check the popped statement
       % ======================================
@@ -114,7 +119,7 @@ fun {Interpretor}
 	 % ======================================
 	 
       [] [bind Expression1 Expression2] then
-
+	 %{Browse Expression1#Expression2}
 	 % ======================================
 	 % Unify given expression, trusting
 	 % Unify.oz
@@ -170,7 +175,7 @@ fun {Interpretor}
 		  if {And Label==PLabel {Length FeatureList}=={Length PFeatureList}} then
 		     local PEnv in
 			PEnv = {CreatePEnv Env FeatureList {Nth {SortRecord [record PLabel PFeatureList]} 3}}
-			{Browse 'Test'#PEnv}
+			{Browse 'PEnv ======== '#PEnv}
 			SemStack := {Append [semStmt(S1 PEnv)] @SemStack}
 		     end
 		  else
