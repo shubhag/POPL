@@ -2,17 +2,18 @@
 \insert 'ProcessRecords.oz'
 declare
 SemStack = {NewCell nil}
-Program =  [localvar ident(foo)
-    [localvar ident(bar)
-      [bind ident(bar) [subr [ident(baz)]
-        [bind [record literal(person) [literal(age) ident(foo)]] 
-              ident(baz)]]]
-      [apply ident(bar) ident(quux)]
-    ]
-  ]
-     
-     
-   
+Program = [localvar ident(foo)
+	   [localvar ident(bar)
+	    [localvar ident(quux)
+	     [
+	      [bind ident(bar) [procedure [ident(x1)][[bind ident(x1) literal(42)] [bind ident(foo) literal(123)][localvar ident(zen) 
+	[bind ident(zen) literal(23)]]]]]
+	      [apply ident(bar) literal(42)]
+	     ]
+	    ]
+	   ]
+	  ]
+	   
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
 
@@ -24,6 +25,49 @@ fun {SortRecord Record}
       raise recordSort(Record) end
    end
 end
+
+fun {CreateProcEnv Env Params Args}
+   case Params of nil then
+      case Args of nil then Env end
+   [] HP|TP then case Args of HA|TA then
+		    %HA#TA#HP#TP
+		    local EnvTemp in
+		       case HA of ident(X) then
+			  EnvTemp = {Adjoin Env environment(X:{AddKeyToSAS})}
+		       end
+		       {Browse HP#HA}
+		       {Unify HP HA EnvTemp}
+		       {CreateProcEnv EnvTemp TP TA}
+		    end
+		 end
+   end
+end
+
+fun {FindInList Xs Y}
+   case Xs
+   of nil then false
+   [] H|T then
+      if H == Y then true
+      else {FindInList T Y}
+      end
+   end
+end
+
+fun {FindClosure Env EnvTemp Args FuncStmt}
+   case FuncStmt
+   of nil then EnvTemp
+   [] ident(H)|T then
+      if {FindInList Args ident(H)} == false then
+	 if {Value.hasFeature Env H} == true then
+	    {FindClosure Env {Adjoin EnvTemp environment(H:Env.H)} Args T}
+	 else {FindClosure Env EnvTemp Args T}
+	 end
+      else {FindClosure Env EnvTemp Args T}
+      end
+   []H|T then {FindClosure Env EnvTemp Args T}
+   end
+end
+
 
 fun {CreatePEnv Env  FList PFList}
    %{Browse 'Entered CreatePEnv'}
@@ -46,7 +90,7 @@ fun {CreatePEnv Env  FList PFList}
 				  {CreatePEnv EnvTemp TFList TPFList}
 			       end
 			    else
-			       raise patternFeature(FList PFList) end
+			       featureUnmatch
 			    end
 			 end
    end
@@ -73,7 +117,7 @@ fun {Interpretor}
 	 Env = @SemStack.1.2
 	 SemStack := @SemStack.2
       end
-      {Browse [Stmt  Env {Dictionary.entries SAS}]}
+     % {Browse [Stmt  Env {Dictionary.entries SAS}]}
       % ======================================
       % Check the popped statement
       % ======================================
@@ -98,7 +142,7 @@ fun {Interpretor}
 	 % Push S with new environment and
 	 % Increment SASKey
 	 % ======================================
-	 
+	 % {Browse S}
 	 SemStack := {Append [semStmt(S {Adjoin Env environment(X:{AddKeyToSAS})})] @SemStack}
 	 
 	 % ======================================
@@ -117,12 +161,12 @@ fun {Interpretor}
 	 % Unify given expression, trusting
 	 % Unify.oz
 	 % ======================================
-	 case Expression2
-	 of [record Label FList] then
+	 case Expression2 of [record Label FList] then
 	    {Unify Expression1 {SortRecord Expression2} Env}
-	
-	 [][procedure Arguments ProcStmt] then
-	    {Unify Expression1 procedure(Arguments ProcStmt nil) Env}
+	 [] [procedure Arguments ProcStmt] then
+	    {Browse 'myclosure'}
+	    {Browse {FindClosure Env environment() Arguments {List.flatten ProcStmt}}}
+	    {Unify Expression1 procedure(Arguments ProcStmt {FindClosure Env environment() Arguments {List.flatten ProcStmt}}) Env}
 	 else
 	    {Unify Expression1 Expression2 Env}
 	 end
@@ -172,8 +216,11 @@ fun {Interpretor}
 		  if {And Label==PLabel {Length FeatureList}=={Length PFeatureList}} then
 		     local PEnv in
 			PEnv = {CreatePEnv Env FeatureList {Nth {SortRecord [record PLabel PFeatureList]} 3}}
-			{Browse 'PEnv ======== '#PEnv}
-			SemStack := {Append [semStmt(S1 PEnv)] @SemStack}
+			if PEnv \= featureUnmatch then
+			   SemStack := {Append [semStmt(S1 PEnv)] @SemStack}
+			else
+			   SemStack := {Append [semStmt(S2 Env)] @SemStack}
+			end
 		     end
 		  else
 		     SemStack := {Append [semStmt(S2 Env)] @SemStack}
@@ -187,17 +234,25 @@ fun {Interpretor}
 	 end
 	 {Interpretor}
 
-      [][apply A B] then
-	% {Browse ProcName}
-	 {Browse 'Name'}
-	% {Browse {RetrieveFromSAS Env.ProcName}}
-	% skip
+      [] apply|ident(ProcName)|Params then
+	 local ProcVal in
+	    ProcVal = {RetrieveFromSAS Env.ProcName}
+	    case ProcVal
+	    of procedure(Arguments ProcStmt ProcEnv) then
+	       if {Length Params} == {Length Arguments} then
+		  local TempEnv in
+		     {Browse 'iniEnv'#ProcEnv}
+		     TempEnv = {CreateProcEnv ProcEnv Params Arguments}
+		     {Browse 'tempEnv'#TempEnv}
+		     SemStack:= {Append [semStmt(ProcStmt TempEnv)] @SemStack}
+		  end
+	       else raise procArityMismatch(ProcName Params) end
+	       end
+	    else raise unknownProcedure(ProcName)
+		 end
+	    end
+	 end
 	 {Interpretor}
-% {Browse ProcName}
-	 
-      
-   
-
 	 
 	 % ======================================
 	 % If stack is of the form <S1> <S2> then
@@ -223,11 +278,9 @@ fun {Interpretor}
 	 % ======================================
 	 {Interpretor}
       else
-	 {Browse Stmt}
+	 Stmt
+	 
       end
-
-      
-      
    end
 end
 %catch Error then
