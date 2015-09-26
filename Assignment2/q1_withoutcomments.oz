@@ -3,23 +3,16 @@
 declare
 SemStack = {NewCell nil}
 Program =  [localvar ident(foo)
-	    [localvar ident(result)
-	     [[bind ident(foo) [record literal(bar)
-				[[literal(xbaz) literal(42)]
-				 [literal(quux) literal(314)]]
-			       ]]
-	      [match ident(foo) [record literal(bar)
-				 [[literal(xbaz) ident(fortytwo)]
-				  [literal(quux) ident(pitimes100)]]
-				]
-	       [bind ident(result) ident(fortytwo)] %% if matched
-	       [bind ident(result) literal(314)]] %% if not matched
-	     %% This will raise an exception if result is not 42
-	      [bind ident(result) literal(42)]
-	     ]
-	    ]
-	   ]
-	   
+    [localvar ident(bar)
+      [bind ident(bar) [subr [ident(baz)]
+        [bind [record literal(person) [literal(age) ident(foo)]] 
+              ident(baz)]]]
+      [apply ident(bar) ident(quux)]
+    ]
+  ]
+     
+     
+   
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
 
@@ -124,8 +117,12 @@ fun {Interpretor}
 	 % Unify given expression, trusting
 	 % Unify.oz
 	 % ======================================
-	 case Expression2 of [record Label FList] then
+	 case Expression2
+	 of [record Label FList] then
 	    {Unify Expression1 {SortRecord Expression2} Env}
+	
+	 [][procedure Arguments ProcStmt] then
+	    {Unify Expression1 procedure(Arguments ProcStmt nil) Env}
 	 else
 	    {Unify Expression1 Expression2 Env}
 	 end
@@ -189,6 +186,18 @@ fun {Interpretor}
 	    end
 	 end
 	 {Interpretor}
+
+      [][apply A B] then
+	% {Browse ProcName}
+	 {Browse 'Name'}
+	% {Browse {RetrieveFromSAS Env.ProcName}}
+	% skip
+	 {Interpretor}
+% {Browse ProcName}
+	 
+      
+   
+
 	 
 	 % ======================================
 	 % If stack is of the form <S1> <S2> then
@@ -213,7 +222,10 @@ fun {Interpretor}
 	 % Call the interpretor again
 	 % ======================================
 	 {Interpretor}
+      else
+	 {Browse Stmt}
       end
+
       
       
    end
