@@ -13,7 +13,8 @@ Program = [localvar ident(foo)
 	    ]
 	   ]
 	  ]
-	   
+
+
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
 
