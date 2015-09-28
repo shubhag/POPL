@@ -2,20 +2,30 @@
 \insert 'ProcessRecords.oz'
 declare
 SemStack = {NewCell nil}
-Program = [localvar ident(x)
-	   [bind ident(x)
-	    [record literal(a) [[literal(feature1) literal(1)] [literal(feature2) ident(x)]]]
-	   ]
-	  ]
-
+Program =
+[localvar ident(foo)
+  [localvar ident(bar)
+   [localvar ident(baz)
+    [[bind ident(foo) ident(bar)]
+     [bind literal(20) ident(bar)]
+     [match ident(foo) literal(21)
+      [bind ident(baz) literal(t)]
+      [bind ident(baz) literal(f)]
+     ]
+     %% Check
+     [bind ident(baz) literal(f)]
+     [nop]]]]]
 
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
 
 fun {SortRecord Record}
    case Record of [record Label Flist] then
-      [record  Label {Map {Canonize {Map Flist fun{$ X} X.1#X.2 end}} fun{$ X} [X.1 X.2] end}
-      ]
+      if {Length Flist} > 2 then
+	 [record  Label {Map {Canonize {Map Flist fun{$ X} X.1#X.2 end}} fun{$ X} [X.1 X.2] end}]
+      else
+	 Record
+      end
    else
       raise recordStructureErr(Record) end
    end
@@ -65,23 +75,20 @@ end
 
 
 fun {CreatePEnv Env  FList PFList}
-   %{Browse 'Entered CreatePEnv'}
-   %{Browse FList}
-   %{Browse PFList}
    case FList of nil then
       case PFList of nil then Env end
    [] HFList|TFList then case PFList of HPFList|TPFList then
+			    {Browse HFList#HPFList}
 			    if (HFList.1 == HPFList.1) then
 			       local EnvTemp in
-				  %{Browse HPFList.2.1#Env}
-				  case HPFList.2.1 of [ident(X)] then
+				  case HPFList.2.1 of ident(X) then
 				     EnvTemp = {Adjoin Env environment(X:{AddKeyToSAS})}
-				     %{Browse EnvTemp}
+				     {Browse 'Here'#EnvTemp}
 				  else
-				     skip
+				     EnvTemp = Env
 				  end
-				  %{Browse 'Unifying'#HFList.2.1.1#HPFList.2.1.1}
-				  {Unify HFList.2.1.1 HPFList.2.1.1 EnvTemp} 
+				  {Browse HFList.2.1#HPFList.2.1}
+				  {Unify HFList.2.1 HPFList.2.1 EnvTemp} 
 				  {CreatePEnv EnvTemp TFList TPFList}
 			       end
 			    else
@@ -211,6 +218,7 @@ fun {Interpretor}
 		  if {And Label==PLabel {Length FeatureList}=={Length PFeatureList}} then
 		     local PEnv in
 			PEnv = {CreatePEnv Env FeatureList {Nth {SortRecord [record PLabel PFeatureList]} 3}}
+			{Browse PEnv}
 			if PEnv \= featureUnmatch then
 			   SemStack := {Append [semStmt(S1 PEnv)] @SemStack}
 			else
@@ -280,16 +288,18 @@ fun {Interpretor}
 end
 
 {Browse 'Starting Interpretor'}
-try
+try				
    {Browse {Interpretor}}
 catch Err then
+   {Browse Err}
    case Err of unboundCondVar(X) then {Browse X}{Browse 'Unbound variable in conditional statement.'}
    [] illegalCondVar(X) then {Browse X}{Browse 'Illegal conditional variable.'}
    [] unboundMatch(X) then {Browse X}{Browse 'Unbound variable in case statement.'}
-   [] recordStructureErr(X) then {Browse X}{Browse 'Unexpected record structure.'}
+   [] recordStuctureErr(X) then {Browse X}{Browse 'Unexpected record structure.'}
    [] recordFeatureMismatch(X Y) then {Browse X#Y}{Browse 'Feature of given records do not match.'}
    [] procArityMismatch(X Y) then {Browse X#Y}{Browse 'The arity of given procedure and arguments does not match.'}
    [] unknownProcedure(X) then {Browse X}{Browse 'Unknown procedure call.'}
+   [] incompatibleTypes(X Y) then {Browse X#Y}{Browse 'Unable to unfiy due to incompatible types'}
       
    else {Browse 'Unknown exception.'}
    end{Browse 'Quitting program due to error.'}
