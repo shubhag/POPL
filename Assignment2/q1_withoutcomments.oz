@@ -2,15 +2,9 @@
 \insert 'ProcessRecords.oz'
 declare
 SemStack = {NewCell nil}
-Program = [localvar ident(foo)
-	   [localvar ident(bar)
-	    [localvar ident(quux)
-	     [
-	      [bind ident(bar) [procedure [ident(x1)][[bind ident(x1) literal(42)] [bind ident(foo) literal(123)][localvar ident(zen) 
-	[bind ident(zen) literal(23)]]]]]
-	      [apply ident(bar) literal(42)]
-	     ]
-	    ]
+Program = [localvar ident(x)
+	   [bind ident(x)
+	    [record literal(a) [[literal(feature1) literal(1)] [literal(feature2) ident(x)]]]
 	   ]
 	  ]
 
@@ -23,7 +17,7 @@ fun {SortRecord Record}
       [record  Label {Map {Canonize {Map Flist fun{$ X} X.1#X.2 end}} fun{$ X} [X.1 X.2] end}
       ]
    else
-      raise recordSort(Record) end
+      raise recordStructureErr(Record) end
    end
 end
 
@@ -118,7 +112,7 @@ fun {Interpretor}
 	 Env = @SemStack.1.2
 	 SemStack := @SemStack.2
       end
-     % {Browse [Stmt  Env {Dictionary.entries SAS}]}
+      {Browse [Stmt  Env {Dictionary.entries SAS}]}
       % ======================================
       % Check the popped statement
       % ======================================
@@ -230,7 +224,7 @@ fun {Interpretor}
 		  SemStack := {Append [semStmt(S2 Env)] @SemStack}
 	       end
 	    else
-	       {Browse {Length MatchVar}}
+	       raise recordStuctureErr(MatchVar) end 
 	    end
 	 end
 	 {Interpretor}
@@ -284,12 +278,20 @@ fun {Interpretor}
       end
    end
 end
-%catch Error then
-%   case Error of unboundCondVar(X) then {Browse X}{Browse "Unbound variable in conditional statement."}
-%  else {Browse "Unknown Exception"}
-%   end
-%   {Browse "Quitting program. Bye"}
-%end
+
 {Browse 'Starting Interpretor'}
-{Browse {Interpretor}}
+try
+   {Browse {Interpretor}}
+catch Err then
+   case Err of unboundCondVar(X) then {Browse X}{Browse 'Unbound variable in conditional statement.'}
+   [] illegalCondVar(X) then {Browse X}{Browse 'Illegal conditional variable.'}
+   [] unboundMatch(X) then {Browse X}{Browse 'Unbound variable in case statement.'}
+   [] recordStructureErr(X) then {Browse X}{Browse 'Unexpected record structure.'}
+   [] recordFeatureMismatch(X Y) then {Browse X#Y}{Browse 'Feature of given records do not match.'}
+   [] procArityMismatch(X Y) then {Browse X#Y}{Browse 'The arity of given procedure and arguments does not match.'}
+   [] unknownProcedure(X) then {Browse X}{Browse 'Unknown procedure call.'}
+      
+   else {Browse 'Unknown exception.'}
+   end{Browse 'Quitting program due to error.'}
+end
 {Browse 'Program succesfully terminated'}
