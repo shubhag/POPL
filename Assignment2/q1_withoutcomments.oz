@@ -4,17 +4,14 @@ declare
 SemStack = {NewCell nil}
 Program =
 [localvar ident(foo)
-  [localvar ident(bar)
-   [localvar ident(baz)
-    [[bind ident(foo) ident(bar)]
-     [bind literal(20) ident(bar)]
-     [match ident(foo) literal(21)
-      [bind ident(baz) literal(t)]
-      [bind ident(baz) literal(f)]
-     ]
-     %% Check
-     [bind ident(baz) literal(f)]
-     [nop]]]]]
+ [localvar ident(result)
+  [[bind ident(foo) [record literal(bar) [[literal(baz) literal(42)] [literal(quux) literal(314)]]]]
+   [match ident(foo) [record literal(bar) [[literal(baz) ident(fortytwo)] [literal(quux) ident(pitimes100)]]]
+    [bind ident(result) ident(fortytwo)] %% if matched
+    [bind ident(result) literal(314)]]
+   %% This will raise an exception if result is not 42
+   [bind ident(result) literal(42)]
+   [nop]]]]
 
 Environment = environment()
 SemStack := {Append [semStmt(Program environment)] @SemStack}
@@ -31,18 +28,29 @@ fun {SortRecord Record}
    end
 end
 
-fun {CreateProcEnv Env Params Args}
+fun {CreateProcEnv TEnv ProcEnv Params Args}
+   {Browse TEnv#Params#Args}
    case Params of nil then
-      case Args of nil then Env end
+      case Args of nil then ProcEnv end
    [] HP|TP then case Args of HA|TA then
-		    %HA#TA#HP#TP
+		    {Browse HA#TA#HP#TP}
 		    local EnvTemp in
 		       case HA of ident(X) then
-			  EnvTemp = {Adjoin Env environment(X:{AddKeyToSAS})}
+			  case HP of ident(Y) then
+			     EnvTemp = {Adjoin ProcEnv environment(X:TEnv.Y)}
+			  else
+			     local Temp in
+				Temp = {AddKeyToSAS}
+				{BindValueToKeyInSAS Temp HP}
+				EnvTemp = {Adjoin ProcEnv environment(X:Temp)}
+			     end
+			  end
+		       else
+			  EnvTemp = ProcEnv
 		       end
-		       {Browse HP#HA}
-		       {Unify HP HA EnvTemp}
-		       {CreateProcEnv EnvTemp TP TA}
+		       {Browse HP#HA#EnvTemp}
+		       %{Unify HP HA {Adjoin TEnv ProcEnv}}
+		       {CreateProcEnv TEnv EnvTemp TP TA}
 		    end
 		 end
    end
@@ -83,7 +91,6 @@ fun {CreatePEnv Env  FList PFList}
 			       local EnvTemp in
 				  case HPFList.2.1 of ident(X) then
 				     EnvTemp = {Adjoin Env environment(X:{AddKeyToSAS})}
-				     {Browse 'Here'#EnvTemp}
 				  else
 				     EnvTemp = Env
 				  end
@@ -245,7 +252,7 @@ fun {Interpretor}
 	       if {Length Params} == {Length Arguments} then
 		  local TempEnv in
 		     {Browse 'iniEnv'#ProcEnv}
-		     TempEnv = {CreateProcEnv ProcEnv Params Arguments}
+		     TempEnv = {CreateProcEnv Env ProcEnv Params Arguments}
 		     {Browse 'tempEnv'#TempEnv}
 		     SemStack:= {Append [semStmt(ProcStmt TempEnv)] @SemStack}
 		  end
@@ -288,20 +295,20 @@ fun {Interpretor}
 end
 
 {Browse 'Starting Interpretor'}
-try				
+% try   
    {Browse {Interpretor}}
-catch Err then
-   {Browse Err}
-   case Err of unboundCondVar(X) then {Browse X}{Browse 'Unbound variable in conditional statement.'}
-   [] illegalCondVar(X) then {Browse X}{Browse 'Illegal conditional variable.'}
-   [] unboundMatch(X) then {Browse X}{Browse 'Unbound variable in case statement.'}
-   [] recordStuctureErr(X) then {Browse X}{Browse 'Unexpected record structure.'}
-   [] recordFeatureMismatch(X Y) then {Browse X#Y}{Browse 'Feature of given records do not match.'}
-   [] procArityMismatch(X Y) then {Browse X#Y}{Browse 'The arity of given procedure and arguments does not match.'}
-   [] unknownProcedure(X) then {Browse X}{Browse 'Unknown procedure call.'}
-   [] incompatibleTypes(X Y) then {Browse X#Y}{Browse 'Unable to unfiy due to incompatible types'}
+% catch Err then
+%    {Browse Err}
+%    case Err of unboundCondVar(X) then {Browse X}{Browse 'Unbound variable in conditional statement.'}
+%    [] illegalCondVar(X) then {Browse X}{Browse 'Illegal conditional variable.'}
+%    [] unboundMatch(X) then {Browse X}{Browse 'Unbound variable in case statement.'}
+%    [] recordStuctureErr(X) then {Browse X}{Browse 'Unexpected record structure.'}
+%    [] recordFeatureMismatch(X Y) then {Browse X#Y}{Browse 'Feature of given records do not match.'}
+%    [] procArityMismatch(X Y) then {Browse X#Y}{Browse 'The arity of given procedure and arguments does not match.'}
+%    [] unknownProcedure(X) then {Browse X}{Browse 'Unknown procedure call.'}
+%    [] incompatibleTypes(X Y) then {Browse X#Y}{Browse 'Unable to unfiy due to incompatible types'}
       
-   else {Browse 'Unknown exception.'}
-   end{Browse 'Quitting program due to error.'}
-end
+%    else {Browse 'Unknown exception.'}
+%    end{Browse 'Quitting program due to error.'}
+% end
 {Browse 'Program succesfully terminated'}
