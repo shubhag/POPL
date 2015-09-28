@@ -295,20 +295,19 @@ fun {Interpretor}
 end
 
 {Browse 'Starting Interpretor'}
-% try   
+try   
    {Browse {Interpretor}}
-% catch Err then
-%    {Browse Err}
-%    case Err of unboundCondVar(X) then {Browse X}{Browse 'Unbound variable in conditional statement.'}
-%    [] illegalCondVar(X) then {Browse X}{Browse 'Illegal conditional variable.'}
-%    [] unboundMatch(X) then {Browse X}{Browse 'Unbound variable in case statement.'}
-%    [] recordStuctureErr(X) then {Browse X}{Browse 'Unexpected record structure.'}
-%    [] recordFeatureMismatch(X Y) then {Browse X#Y}{Browse 'Feature of given records do not match.'}
-%    [] procArityMismatch(X Y) then {Browse X#Y}{Browse 'The arity of given procedure and arguments does not match.'}
-%    [] unknownProcedure(X) then {Browse X}{Browse 'Unknown procedure call.'}
-%    [] incompatibleTypes(X Y) then {Browse X#Y}{Browse 'Unable to unfiy due to incompatible types'}
-      
-%    else {Browse 'Unknown exception.'}
-%    end{Browse 'Quitting program due to error.'}
-% end
+catch Err then
+   {Browse Err}
+   case Err of unboundCondVar(X) then {Browse X}{Browse 'Unbound variable in conditional statement.'}
+   [] illegalCondVar(X) then {Browse X}{Browse 'Illegal conditional variable.'}
+   [] unboundMatch(X) then {Browse X}{Browse 'Unbound variable in case statement.'}
+   [] recordStuctureErr(X) then {Browse X}{Browse 'Unexpected record structure.'}
+   [] recordFeatureMismatch(X Y) then {Browse X#Y}{Browse 'Feature of given records do not match.'}
+   [] procArityMismatch(X Y) then {Browse X#Y}{Browse 'The arity of given procedure and arguments does not match.'}
+   [] unknownProcedure(X) then {Browse X}{Browse 'Unknown procedure call.'}
+   [] incompatibleTypes(X Y) then {Browse X#Y}{Browse 'Unable to unfiy due to incompatible types'}
+   else {Browse 'Unknown exception.'}
+   end{Browse 'Quitting program due to error.'}
+end
 {Browse 'Program succesfully terminated'}
