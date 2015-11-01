@@ -1,4 +1,4 @@
-local WaitForBound CheckAll CheckAllUnbound X Y Z A NSelect AllFalse GetTrueList in
+local WaitForBound CheckAll CheckAllUnbound Nselect AllFalse GetTrueList in
    fun {CheckAllUnbound Xs N}
       if N == 1 then true
       else
@@ -57,41 +57,57 @@ local WaitForBound CheckAll CheckAllUnbound X Y Z A NSelect AllFalse GetTrueList
       end
    end
    
-   fun {NSelect Xs}
+   % fun {NSelect Xs}
+   %    if {WaitForBound Xs} == true then
+   % 	 local Y B in
+   % 	    if {AllFalse Xs {List.length Xs}} == true then
+   % 	       Y = {List.nth Xs {List.length Xs}}
+   % 	       case Y
+   % 	       of C#D then D
+   % 	       end
+   % 	    else
+   % 	       A = {GetTrueList Xs {List.length Xs}}
+   % 	       B = {Int.'mod' {OS.rand}  {List.length A}} + 1
+   % 	       Y = {List.nth A B}
+   % 	       case Y
+   % 	       of C#D then D
+   % 	       end
+   % 	    end
+   % 	 end
+   %    end	         
+   % end
+   fun {Nselect Xs}
       if {WaitForBound Xs} == true then
-	 local Y B in
+	 local X Y Z in
 	    if {AllFalse Xs {List.length Xs}} == true then
-	       Y = {List.nth Xs {List.length Xs}}
-	       case Y
-	       of C#D then D
-	       end
+	       Z = {List.nth Xs {List.length Xs}}
+	       case Z of
+		  C#D then D
+	       end 
 	    else
-	       A = {GetTrueList Xs {List.length Xs}}
-	       B = {Int.'mod' {OS.rand}  {List.length A}} + 1
-	       Y = {List.nth A B}
-	       case Y
-	       of C#D then D
-	       end
+	       X = {GetTrueList Xs {List.length Xs}}
+	       Y = {Int.'mod' {OS.rand}  {List.length X}} + 1
+	       Z = {List.nth X Y}
+	       case Z of
+		  C#D then D
+	       end	  
 	    end
 	 end
-      end	         
+      else false
+      end
    end
 
-   
-   A = [X#nil Y#nil Z#luck true#nil]
-     % {Browse {CheckAllUnbound A {List.length A}}}
-      %{Browse {WaitForBound A}}
-   %{Browse {Lucky A}}
-   % Z = true
-   %{Browse {WaitForBound A}}
-   Z = X
-   X = Y
-   X = true
+   local X Y Z A in
+      A = [X#nil Y#nil Z#luck true#default]
+      Z = X
+      X = Y
+      X = false
    %X =true
-   {Browse {AllFalse A {List.length A}}}
-   {Browse {GetTrueList A {List.length A}}}
-   {Browse A}
-   %{NSelect A}
+   %{Browse {AllFalse A {List.length A}}}
+   %{Browse {GetTrueList A {List.length A}}}
+   %{Browse A}
+      {Browse {Nselect A}}
+   end
 end
 	    
    
