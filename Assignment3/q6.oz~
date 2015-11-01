@@ -1,0 +1,89 @@
+local WaitForBound CheckAll CheckAllUnbound X Y Z A NSelect AllFalse GetTrueList in
+   fun {CheckAllUnbound Xs N}
+      if N == 1 then true
+      else
+	 case Xs.1 of
+	    A#B then if {Value.isDet A} then false
+		     else {CheckAllUnbound Xs.2 N-1}
+		     end
+	 end
+      end
+   end
+   
+   fun {CheckAll Xs}
+      if {CheckAllUnbound Xs {List.length Xs}} == false  then true
+      else {CheckAll Xs}
+      end
+   end
+   
+   fun {WaitForBound Xs}
+      local S in
+	 thread S = {CheckAll Xs} end
+      end
+   end
+
+   % fun {Lucky Xs}
+   %    if {WaitForBound Xs} == true
+   %    then true
+   %    else false
+   %    end
+   % end
+
+   fun {AllFalse Xs N}
+      if N == 1 then true
+      else
+	 case Xs.1 of
+	    C#D then
+	    if C == true then false
+	    else {AllFalse Xs.2 N-1}
+	    end
+	 end
+      end
+   end
+
+   fun {GetTrueList Xs N}
+      if N == 1 then nil
+      else
+	 if {Value.isDet Xs.1} == true then
+	    case Xs.1 of
+	       C#D then
+	       if C == true then Xs.1 | {GetTrueList Xs.2 N-1}
+	       else {GetTrueList Xs.2 N-1}
+	       end
+	    end
+	 else
+	    {GetTrueList Xs.2 N-1}
+	 end
+      end
+   end
+   
+   fun {NSelect Xs}
+      if {WaitForBound Xs} == true then
+	 local Y B in
+	    if {AllFalse Xs {List.length Xs}} == true then
+	       Y = {List.nth Xs {List.length Xs}}
+	       case Y
+	       of C#D then {Browse cunt}
+	       end
+	    else
+	       A = {GetTrueList Xs {List.length Xs}}
+	       B = {Int.'mod' {OS.rand}  {List.length A}} + 1
+	       Y = {List.nth A B}
+	       case Y
+	       of C#D then {Browse cunt}
+	       end
+	    end
+	 end
+      end	         
+   end
+
+   
+   A = [X#nil Y#nil true#luck true#nil]
+     % {Browse {CheckAllUnbound A {List.length A}}}
+      %{Browse {WaitForBound A}}
+   %{Browse {Lucky A}}
+   {Browse {NSelect A}}
+end
+	    
+   
+   
