@@ -1,0 +1,19 @@
+local X Y AvgN RandStream NaturalNum in
+   fun {AvgN A B N}
+      {Float.'/' A.1*N+B.1  N+1.0} | {AvgN A.2 B.2 N+1.0}
+   end
+   fun {RandStream}
+      {Int.toFloat {OS.rand}} | {RandStream}
+   end
+
+   fun {NaturalNum N}
+      N | {NaturalNum N+1.0}
+   end
+   
+   thread X = {RandStream} end
+   thread Y = X.1 | {AvgN Y X.2 1.0}  end
+   %thread X = {NaturalNum 1.0} end
+   
+   {Browse X}
+   {Browse Y}
+end

@@ -1,0 +1,13 @@
+local LazyAppend Xs Ys Zs in
+   fun lazy {LazyAppend Xs Ys}
+      if Xs == nil then Ys
+      else Xs.1 | {Append Xs.2 Ys}
+      end
+   end
+
+   Xs = [2 3 4 8 5]
+   Ys = [9 0 87 5]
+   Zs = {LazyAppend Xs Ys}
+
+   {Browse Zs.1}
+end
