@@ -34,8 +34,11 @@ local WaitForBound CheckAll CheckAllUnbound Nselect AllFalse GetTrueList in
       else
 	 case Xs.1 of
 	    C#D then
-	    if C == true then false
-	    else {AllFalse Xs.2 N-1}
+	    if {Value.isDet C} == true then
+	       if C == true then false
+	       else {AllFalse Xs.2 N-1}
+	       end
+	    else false
 	    end
 	 end
       end
@@ -57,56 +60,44 @@ local WaitForBound CheckAll CheckAllUnbound Nselect AllFalse GetTrueList in
       end
    end
    
-   % fun {NSelect Xs}
-   %    if {WaitForBound Xs} == true then
-   % 	 local Y B in
-   % 	    if {AllFalse Xs {List.length Xs}} == true then
-   % 	       Y = {List.nth Xs {List.length Xs}}
-   % 	       case Y
-   % 	       of C#D then D
-   % 	       end
-   % 	    else
-   % 	       A = {GetTrueList Xs {List.length Xs}}
-   % 	       B = {Int.'mod' {OS.rand}  {List.length A}} + 1
-   % 	       Y = {List.nth A B}
-   % 	       case Y
-   % 	       of C#D then D
-   % 	       end
-   % 	    end
-   % 	 end
-   %    end	         
-   % end
    fun {Nselect Xs}
-      if {WaitForBound Xs} == true then
-	 local X Y Z in
-	    if {AllFalse Xs {List.length Xs}} == true then
-	       Z = {List.nth Xs {List.length Xs}}
-	       case Z of
-		  C#D then D
-	       end 
-	    else
-	       X = {GetTrueList Xs {List.length Xs}}
-	       Y = {Int.'mod' {OS.rand}  {List.length X}} + 1
-	       Z = {List.nth X Y}
-	       case Z of
-		  C#D then D
-	       end	  
+      if Xs == nil then
+	 {Browse 'No element present in XList'}
+	 nil
+      else
+	 if {WaitForBound Xs} == true then
+	    local X Y Z in
+	       if {AllFalse Xs {List.length Xs}} == true then
+		  Z = {List.nth Xs {List.length Xs}}
+		  case Z of
+		     C#D then D
+		  end 
+	       else
+		  X = {GetTrueList Xs {List.length Xs}}
+		  if X == nil then
+		     {Browse 'no true element found'}
+		     nil
+		  else
+		     Y = {Int.'mod' {OS.rand}  {List.length X}} + 1
+		     Z = {List.nth X Y}
+		     case Z of
+			C#D then D
+		     end
+		  end
+	       end
 	    end
+	 else false
 	 end
-      else false
       end
    end
-
    local X Y Z A in
-      A = [X#nil Y#nil Z#luck true#default]
+      A = [X#nila Y#nilb Z#luck true#truea]
       Z = X
-      X = Y
-      X = false
-   %X =true
-   %{Browse {AllFalse A {List.length A}}}
-   %{Browse {GetTrueList A {List.length A}}}
-   %{Browse A}
-      {Browse {Nselect A}}
+      {Browse {AllFalse A {List.length A}}}
+      {Browse 'Starting'}
+      thread {Browse {Nselect A}} end
+      {Delay 4000}
+      X= false
    end
 end
 	    
