@@ -15,10 +15,10 @@ local Barrier BarrierListLoop in
       end
    end
    local X Y Z in
-      {Barrier [proc {$} X = 1 end
+      {Barrier [proc {$} {Browse 'Proc'#X*Y*Z} end
+		proc {$} X = 1 end
 		proc {$} Y = X + 2 end
 		proc {$} Z = X + Y end
-		proc {$} {Browse Z} end
 	       ]}
    end
    

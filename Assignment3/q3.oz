@@ -8,7 +8,7 @@ local LazyAppend LazyQuicksort Partition Xs Ys in
       Xs = [2 3 4 8 5]
       Ys = [9 0 87 5]
       Zs = {LazyAppend Xs Ys}
-      %{Browse Zs.2.2.2.2.2.2.1}
+      {Browse Zs.2.2.2.2.2.2.1}
    end
 
    proc {Partition Xs Pivot Left Right}
@@ -36,7 +36,7 @@ local LazyAppend LazyQuicksort Partition Xs Ys in
       end
    end
    Xs = {LazyQuicksort [5 8 4 7 3 2 7 6 0 5 4 1 0 4]}
-   {Browse Xs.2.2.1}
+   {Browse Xs.2.2.2.2.2.1}
 end
 
 

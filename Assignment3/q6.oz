@@ -22,13 +22,6 @@ local WaitForBound CheckAll CheckAllUnbound Nselect AllFalse GetTrueList in
       end
    end
 
-   % fun {Lucky Xs}
-   %    if {WaitForBound Xs} == true
-   %    then true
-   %    else false
-   %    end
-   % end
-
    fun {AllFalse Xs N}
       if N == 1 then true
       else
@@ -90,15 +83,39 @@ local WaitForBound CheckAll CheckAllUnbound Nselect AllFalse GetTrueList in
 	 end
       end
    end
+
+   %% no true and some unbound
+   
    local X Y Z A in
-      A = [X#nila Y#nilb Z#luck true#truea]
+      A = [X#hi Y#bye Z#why true#so]
       Z = X
-      {Browse {AllFalse A {List.length A}}}
       {Browse 'Starting'}
       thread {Browse {Nselect A}} end
       {Delay 4000}
       X= false
    end
+
+   %% contains 2 true elements
+   
+   % local X Y Z A in
+   %    A = [X#hi Y#bye Z#why true#so]
+   %    Z = X
+   %    {Browse 'Starting'}
+   %    thread {Browse {Nselect A}} end
+   %    {Delay 4000}
+   %    X= true
+   % end
+
+   %%all false
+   % local X Y Z A in
+   %    A = [X#hi Y#bye Z#why true#so]
+   %    Z = X
+   %    Y = X
+   %    {Browse 'Starting'}
+   %    thread {Browse {Nselect A}} end
+   %    {Delay 4000}
+   %    X= false
+   % end
 end
 	    
    
