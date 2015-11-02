@@ -3,7 +3,7 @@ local X Y AvgN RandStream NaturalNum in
       {Float.'/' A.1*N+B.1  N+1.0} | {AvgN A.2 B.2 N+1.0}
    end
    fun {RandStream}
-      {Int.toFloat {Int.'mod' {OS.rand} 2} | {RandStream}
+      {Int.toFloat {Int.'mod' {OS.rand} 2}} | {RandStream}
    end
 
    fun {NaturalNum N}
